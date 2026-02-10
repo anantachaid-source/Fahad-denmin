@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-tastytable---smart-queue-&-pre-order-system",
+  "name": "tastytable---smart-queue-&-pre-order-system",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
   "dependencies": {
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "recharts": "^3.7.0"
+    "recharts": "2.12.7"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
