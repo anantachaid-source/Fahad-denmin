@@ -1,0 +1,8 @@
+{
+  "name": "Copy of TastyTable - Smart Queue & Pre-order System",
+  "description": "A comprehensive restaurant management platform featuring real-time queue tracking, food pre-ordering, and multi-user dashboards for customers, restaurants, and admins.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
