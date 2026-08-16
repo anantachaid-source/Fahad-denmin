@@ -1,41 +1,2283 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TastyTable - Smart Queue System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #fcfdfe;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/"
-  }
-}
-</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ล่าดวงดาว หนีอุกกาบาต 3D - Ultimate Space Odyssey</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- MediaPipe Hands & Camera Utils for Hand Tracking Control -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    .font-pixel {
+      font-family: 'Press Start 2P', cursive;
+    }
+    
+    /* Premium Glassmorphism styling */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Screen hit flash effect */
+    #damage-overlay {
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+    }
+    #shield-overlay {
+      pointer-events: none;
+      transition: opacity 0.2s ease-out;
+    }
+
+    /* Pulse glows & keyframe animations */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.9); }
+    }
+    .btn-glow {
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes laserGlow {
+      0%, 100% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+      50% { box-shadow: 0 0 25px rgba(248, 113, 113, 0.9); }
+    }
+    .btn-laser-glow {
+      animation: laserGlow 1.5s infinite;
+    }
+
+    @keyframes levelUpAnim {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-level-up {
+      animation: levelUpAnim 0.5s ease-out forwards;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.4);
+      border-radius: 9999px;
+    }
+
+    /* ===== PREMIUM SPACE UI ===== */
+    :root {
+      --ui-cyan: #22d3ee;
+      --ui-blue: #38bdf8;
+      --ui-purple: #a78bfa;
+      --ui-yellow: #facc15;
+      --ui-panel: rgba(7, 15, 32, 0.82);
+    }
+
+    .glass-panel {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(8, 15, 30, 0.76));
+      border: 1px solid rgba(103, 232, 249, 0.22);
+      box-shadow: 0 12px 35px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    #hud-layer > div:first-child > .glass-panel {
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(56,189,248,.30);
+    }
+    #hud-layer > div:first-child > .glass-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #22d3ee, #818cf8, transparent);
+      opacity: .9;
+    }
+
+    #score-val {
+      text-shadow: 0 0 18px rgba(250,204,21,.45);
+      letter-spacing: 1px;
+    }
+    #reward-val {
+      text-shadow: 0 0 12px rgba(251,191,36,.28);
+    }
+
+    /* Camera card */
+    body > .absolute.top-4.left-4 {
+      gap: 12px !important;
+    }
+    body > .absolute.top-4.left-4 > div:first-child {
+      border-radius: 18px !important;
+      border-color: rgba(34,211,238,.42) !important;
+      box-shadow: 0 0 0 1px rgba(34,211,238,.06), 0 15px 45px rgba(0,0,0,.52), 0 0 28px rgba(34,211,238,.10) !important;
+    }
+    body > .absolute.top-4.left-4 > div:first-child::after {
+      content: '● LIVE';
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      z-index: 4;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font: 700 8px/1 'Prompt', sans-serif;
+      letter-spacing: .8px;
+      color: #a7f3d0;
+      background: rgba(2,44,34,.78);
+      border: 1px solid rgba(52,211,153,.35);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Item list */
+    body > .absolute.top-4.left-4 > div:nth-child(2) {
+      margin-top: 14px !important;
+      border-radius: 18px !important;
+      padding: 12px !important;
+      border-color: rgba(56,189,248,.25) !important;
+      background: linear-gradient(150deg, rgba(8,20,40,.92), rgba(8,15,30,.84)) !important;
+      box-shadow: 0 15px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.05) !important;
+    }
+    body > .absolute.top-4.left-4 > div:nth-child(2) .grid > div {
+      min-height: 25px;
+      padding: 4px 6px;
+      border-radius: 9px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.045);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    body > .absolute.top-4.left-4 > div:nth-child(2) .grid > div:hover {
+      transform: translateY(-1px);
+      background: rgba(34,211,238,.08);
+      border-color: rgba(34,211,238,.20);
+    }
+
+    /* Buttons */
+    button.glass-panel {
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    button.glass-panel:hover {
+      transform: translateY(-1px);
+      border-color: rgba(103,232,249,.45);
+      box-shadow: 0 10px 28px rgba(0,0,0,.35), 0 0 18px rgba(34,211,238,.08);
+    }
+
+    /* Power-up badges */
+    #powerup-hud > div {
+      min-width: 145px;
+      justify-content: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,.35);
+    }
+
+    /* Item counter */
+    #hud-layer > div:first-child > .glass-panel:nth-child(2) {
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(5,32,46,.88), rgba(12,24,45,.80));
+      box-shadow: 0 10px 28px rgba(0,0,0,.32), 0 0 18px rgba(34,211,238,.08);
+    }
+
+    /* Health panel */
+    #hud-layer > div:first-child > .glass-panel:last-child {
+      border-color: rgba(244,63,94,.22);
+    }
+
+    /* Mobile spacing */
+    @media (max-width: 640px) {
+      body > .absolute.top-4.left-4 {
+        transform: scale(.92);
+        transform-origin: top left;
+      }
+      #hud-layer {
+        padding: 8px !important;
+      }
+    }
+
+  </style>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
+<body class="relative w-screen h-screen overflow-hidden select-none">
+
+  <!-- Webcam Container -->
+  <div class="absolute top-4 left-4 z-30 pointer-events-auto flex flex-col items-start gap-2">
+    <div class="relative glass-panel rounded-2xl overflow-hidden border border-cyan-400/40 p-1 bg-slate-900/80 shadow-2xl w-36 h-28 sm:w-44 sm:h-32">
+      <!-- Video Element for Camera Feed -->
+      <video id="webcam-video" class="absolute inset-0 w-full h-full object-cover rounded-xl -scale-x-100 hidden" playsinline></video>
+      <!-- Canvas for Hand Tracking Visualization -->
+      <canvas id="webcam-canvas" class="absolute inset-0 w-full h-full object-cover rounded-xl -scale-x-100"></canvas>
+      
+      <!-- Status Badge -->
+      <div id="hand-status-badge" class="absolute bottom-1 left-1 right-1 bg-slate-950/85 text-[10px] sm:text-[11px] text-cyan-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-white/10 font-medium">
+        <i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังเตรียมกล้อง...
+      </div>
+    </div>
+    
+    <!-- Item List -->
+    <div class="glass-panel w-full rounded-2xl border border-cyan-400/25 bg-slate-950/85 p-2.5 shadow-xl">
+      <div class="flex items-center justify-between mb-2 border-b border-slate-700/60 pb-1.5">
+        <div class="text-[11px] sm:text-xs font-bold text-cyan-300 tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-box-open text-cyan-400"></i> รายการไอเท็ม
+        </div>
+        <span class="text-[9px] text-slate-500">เก็บเพื่อรับโบนัส</span>
+      </div>
+      <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px] sm:text-[10px]">
+        <div class="flex items-center gap-1 text-cyan-300"><span>🛡️</span> โล่ <span class="text-slate-500">ป้องกัน</span></div>
+        <div class="flex items-center gap-1 text-purple-300"><span>🧲</span> แม่เหล็ก <span class="text-slate-500">ดูด</span></div>
+        <div class="flex items-center gap-1 text-rose-300"><span>❤️</span> หัวใจ <span class="text-slate-500">+ชีวิต</span></div>
+        <div class="flex items-center gap-1 text-yellow-300"><span>⚡</span> ความเร็ว <span class="text-slate-500">x2</span></div>
+        <div class="flex items-center gap-1 text-emerald-300"><span>🟢</span> คะแนน <span class="text-slate-500">+250</span></div>
+        <div class="flex items-center gap-1 text-rose-300"><span>🔫</span> กระสุน <span class="text-slate-500">+5</span></div>
+        <div class="flex items-center gap-1 text-amber-300"><span>🪙</span> เหรียญ <span class="text-slate-500">+50</span></div>
+        <div class="flex items-center gap-1 text-cyan-300"><span>💎</span> คริสตัล <span class="text-slate-500">+100</span></div>
+        <div class="flex items-center gap-1 text-violet-300"><span>🔋</span> พลังงาน <span class="text-slate-500">+150</span></div>
+        <div class="flex items-center gap-1 text-yellow-200"><span>🌟</span> ดาวทอง <span class="text-slate-500">+500</span></div>
+        <div class="flex items-center gap-1 text-orange-300"><span>🚀</span> Boost <span class="text-slate-500">+200</span></div>
+        <div class="flex items-center gap-1 text-pink-300"><span>💠</span> คริสตัลใหญ่ <span class="text-slate-500">+1000</span></div>
+      </div>
+    </div>
+
+    <div class="flex gap-1.5 w-full">
+      <button id="toggle-cam-btn" class="glass-panel text-[11px] sm:text-xs px-2.5 py-1.5 rounded-xl text-slate-200 hover:text-white flex-1 flex items-center justify-center gap-1 active:scale-95 transition shadow-lg">
+        <i class="fa-solid fa-video text-cyan-400"></i> กล้อง
+      </button>
+      <button id="toggle-sound-btn" class="glass-panel text-[11px] sm:text-xs px-2.5 py-1.5 rounded-xl text-slate-200 hover:text-white flex-1 flex items-center justify-center gap-1 active:scale-95 transition shadow-lg">
+        <i id="sound-icon" class="fa-solid fa-volume-high text-emerald-400"></i> เสียง
+      </button>
+    </div>
+  </div>
+
+  <!-- 3D Canvas Viewport Container -->
+  <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+  <!-- Damage & Shield Overlays -->
+  <div id="damage-overlay" class="absolute inset-0 bg-red-600/50 opacity-0 z-10"></div>
+  <div id="shield-overlay" class="absolute inset-0 bg-cyan-400/30 opacity-0 z-10"></div>
+
+  <!-- HUD Layer -->
+  <div id="hud-layer" class="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-3 sm:p-5 hidden">
+    <!-- Top HUD Bar -->
+    <div class="flex justify-between items-start w-full">
+      
+      <!-- Score & Level Stats -->
+      <div class="glass-panel ml-52 sm:ml-72 px-4 py-3 rounded-2xl flex flex-col gap-1 shadow-lg pointer-events-auto min-w-[140px] sm:min-w-[170px]">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-1 mb-0.5">
+          <span class="text-[10px] sm:text-xs text-amber-400 font-bold tracking-wider flex items-center gap-1">
+            <i class="fa-solid fa-layer-group"></i> LEVEL
+          </span>
+          <span id="level-val" class="font-pixel text-xs sm:text-sm text-amber-300">1</span>
+        </div>
+
+        <div class="text-[11px] sm:text-xs text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-star text-yellow-400"></i> คะแนน
+        </div>
+        <div id="score-val" class="font-pixel text-lg sm:text-2xl text-yellow-300">0</div>
+
+        <!-- Reward Rank -->
+        <div class="mt-1 rounded-xl bg-amber-950/40 border border-amber-500/25 px-2.5 py-1.5">
+          <div class="text-[9px] text-amber-300/80 uppercase tracking-wider">รางวัลปัจจุบัน</div>
+          <div id="reward-val" class="text-[11px] sm:text-xs font-bold text-amber-200">⭐ นักสำรวจมือใหม่</div>
+        </div>
+        
+        <!-- Multiplier Combo Badge -->
+        <div class="flex items-center gap-2 mt-0.5">
+          <span class="text-[10px] text-slate-300">คอมโบ:</span>
+          <span id="combo-badge" class="bg-indigo-600/80 text-white font-pixel text-[10px] px-2 py-0.5 rounded-full border border-indigo-400/40">x1</span>
+        </div>
+
+        <div class="text-[10px] sm:text-[11px] text-slate-300 flex items-center gap-1 mt-1 border-t border-slate-700/50 pt-1">
+          <i class="fa-solid fa-globe text-cyan-300"></i> ดาวที่เก็บ: <span id="planets-count" class="font-bold text-white">0</span>/8
+        </div>
+      </div>
+
+      <!-- Active Powerup Badges HUD -->
+      <div class="glass-panel px-3 py-1.5 rounded-xl text-[11px] sm:text-xs text-emerald-300 font-bold border border-emerald-400/30 shadow-lg pointer-events-auto">
+        <i class="fa-solid fa-box-open mr-1"></i> ไอเทม <span id="items-count">0</span>
+      </div>
+
+      <div id="powerup-hud" class="flex flex-col gap-1.5 pointer-events-auto items-center">
+        <div id="shield-badge" class="hidden glass-panel px-3 py-1.5 rounded-xl border border-cyan-400 bg-cyan-950/60 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 shadow-lg animate-pulse">
+          <i class="fa-solid fa-shield-halved text-cyan-400"></i> เกราะบาเรีย
+        </div>
+        <div id="magnet-badge" class="hidden glass-panel px-3 py-1.5 rounded-xl border border-purple-400 bg-purple-950/60 text-purple-300 text-xs font-semibold flex items-center gap-1.5 shadow-lg">
+          <i class="fa-solid fa-magnet text-purple-400"></i> แม่เหล็ก (<span id="magnet-timer">8</span>s)
+        </div>
+        <div id="speed-badge" class="hidden glass-panel px-3 py-1.5 rounded-xl border border-yellow-400 bg-yellow-950/60 text-yellow-300 text-xs font-semibold flex items-center gap-1.5 shadow-lg animate-pulse">
+          <i class="fa-solid fa-bolt text-yellow-400"></i> ความเร็ว x2 (<span id="speed-timer">10</span>s)
+        </div>
+      </div>
+
+      <!-- Health Lives & Pause Button -->
+      <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col items-end gap-1 shadow-lg pointer-events-auto">
+        <div class="flex items-center gap-3">
+          <button id="pause-btn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-600 active:scale-95 transition">
+            <i class="fa-solid fa-pause"></i> พัก
+          </button>
+          <div class="text-[11px] sm:text-xs text-rose-400 font-bold tracking-wider flex items-center gap-1">
+            พลังชีวิต <i class="fa-solid fa-heart text-rose-500"></i>
+          </div>
+        </div>
+        
+        <!-- Hearts HUD -->
+        <div id="hearts-container" class="flex gap-1.5 text-lg sm:text-2xl text-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)] mt-1">
+          <i class="fa-solid fa-heart"></i>
+          <i class="fa-solid fa-heart"></i>
+          <i class="fa-solid fa-heart"></i>
+        </div>
+        
+        <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">
+          สถิติสูงสุด: <span id="highscore-val" class="text-yellow-400 font-semibold">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level Up Banner Notification -->
+    <div id="levelup-banner" class="self-center glass-panel px-8 py-4 rounded-3xl text-center shadow-2xl border-amber-400/60 bg-gradient-to-r from-amber-950/80 via-yellow-900/80 to-amber-950/80 transform -translate-y-4 opacity-0 transition-all duration-500 pointer-events-none">
+      <div class="text-xs font-bold text-amber-300 tracking-widest uppercase mb-1"><i class="fa-solid fa-bolt mr-1"></i> ยินดีด้วย!</div>
+      <div id="levelup-text" class="text-2xl sm:text-3xl font-extrabold text-amber-200 font-pixel drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">LEVEL 2</div>
+      <div class="text-xs text-slate-300 mt-1">ความเร็วอุกกาบาตเพิ่มขึ้น!</div>
+    </div>
+
+    <!-- Educational Fact Popup Banner -->
+    <div id="fact-popup" class="self-center glass-panel px-5 py-3 rounded-2xl text-center max-w-md shadow-2xl border-cyan-400/50 transform -translate-y-4 opacity-0 transition-all duration-300 pointer-events-none">
+      <div id="fact-title" class="text-xs uppercase tracking-widest text-cyan-300 font-bold mb-0.5">ความรู้ดาราศาสตร์</div>
+      <div id="fact-body" class="text-xs sm:text-sm text-white font-medium">เก็บดาวเคราะห์สำเร็จ!</div>
+    </div>
+
+    <!-- On-screen Controls (Touch & Laser Fire Buttons) -->
+    <div class="w-full flex justify-between items-end pb-2 pointer-events-auto">
+      <div class="flex gap-2">
+        <button id="btn-left" class="glass-panel active:scale-90 transition-transform duration-100 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl text-cyan-300 shadow-xl border-cyan-400/40 select-none">
+          <i class="fa-solid fa-caret-left"></i>
+        </button>
+        <button id="btn-right" class="glass-panel active:scale-90 transition-transform duration-100 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl text-cyan-300 shadow-xl border-cyan-400/40 select-none">
+          <i class="fa-solid fa-caret-right"></i>
+        </button>
+      </div>
+
+      <!-- Center status note -->
+      <div class="hidden md:block text-center text-xs text-slate-300/90 bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 backdrop-blur-md">
+        <i class="fa-solid fa-keyboard mr-1 text-cyan-400"></i> บังคับ: [A][D] หรือ [←][→] | ยิงเลเซอร์: [Spacebar]
+      </div>
+
+      <!-- Fire Laser Button -->
+      <button id="btn-laser" class="glass-panel btn-laser-glow active:scale-90 transition-transform duration-100 w-18 h-18 sm:w-22 sm:h-22 p-3 rounded-2xl flex flex-col items-center justify-center text-rose-400 shadow-2xl border-rose-500/60 bg-rose-950/40 select-none">
+        <div id="laser-ammo-val" class="absolute -top-2 -right-2 bg-rose-950/95 border border-rose-500/60 text-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full">20/20</div>
+        <i class="fa-solid fa-bolt text-2xl sm:text-3xl text-rose-400"></i>
+        <span class="text-[9px] font-bold text-rose-300 tracking-wider mt-0.5">ยิงเลเซอร์</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Astronomy Quiz Challenge Modal -->
+  <div id="quiz-modal" class="absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg hidden">
+    <div class="glass-panel max-w-md w-full rounded-3xl p-6 sm:p-7 text-center flex flex-col gap-4 shadow-2xl border-amber-400/50 bg-slate-900/90">
+      
+      <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-brain text-amber-400 text-xl"></i>
+          <h3 class="text-base sm:text-lg font-bold text-amber-300">ภารกิจตอบคำถามดาราศาสตร์</h3>
+        </div>
+        <span class="text-[11px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-semibold">โบนัสพิเศษ</span>
+      </div>
+
+      <!-- Question Box -->
+      <div class="text-left bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
+        <div id="quiz-planet-name" class="text-xs text-cyan-400 font-semibold mb-1"><i class="fa-solid fa-globe mr-1"></i> คำถามดาวพุธ</div>
+        <div id="quiz-question-text" class="text-sm sm:text-base text-white font-medium leading-relaxed">ดาวเคราะห์ดวงใดในระบบสุริยะที่มีขนาดใหญ่ที่สุด?</div>
+      </div>
+
+      <!-- Options Container -->
+      <div id="quiz-options-container" class="flex flex-col gap-2.5 text-left">
+        <!-- Dynamically injected choices -->
+      </div>
+
+      <!-- Result / Feedback Box -->
+      <div id="quiz-feedback-box" class="hidden p-3 rounded-xl text-xs sm:text-sm text-left font-medium border">
+        <!-- Result text -->
+      </div>
+
+      <!-- Continue Button -->
+      <button id="quiz-continue-btn" class="hidden w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg hover:opacity-95 active:scale-95 transition">
+        <i class="fa-solid fa-forward mr-1"></i> ลุยภารกิจต่อ!
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Victory / Win Modal (เมื่อสะสมดาวครบ 8 ดวง) -->
+  <div id="win-modal" class="absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg hidden">
+    <div class="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center gap-5 shadow-2xl border-amber-400/50 bg-slate-900/95">
+      
+      <div class="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-400/40 flex items-center justify-center text-4xl text-amber-400 mb-1 shadow-[0_0_30px_rgba(251,191,36,0.4)] animate-bounce">
+        <i class="fa-solid fa-trophy text-amber-300"></i>
+      </div>
+
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
+          ภารกิจพิชิตอวกาศสมบูรณ์!
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+          ยินดีด้วย! คุณสามารถรวบรวมดาวเคราะห์ครบทั้ง <span class="text-cyan-300 font-bold">8 ดวง</span> ในระบบสุริยะสำเร็จ และเดินทางถึงจุดสิ้นสุดภารกิจ!
+        </p>
+      </div>
+
+      <!-- Final Win Stats -->
+      <div class="w-full glass-card p-4 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-center border-amber-400/30">
+        <div class="border-r border-slate-700/60 pr-1">
+          <div class="text-[11px] text-slate-400">LEVEL สิ้นสุด</div>
+          <div id="win-final-level" class="font-pixel text-lg sm:text-xl text-amber-300 mt-1">1</div>
+        </div>
+        <div class="border-r border-slate-700/60 px-1">
+          <div class="text-[11px] text-slate-400">คะแนนรวมสูงสุด</div>
+          <div id="win-final-score" class="font-pixel text-lg sm:text-xl text-yellow-300 mt-1">0</div>
+        </div>
+        <div class="pl-1">
+          <div class="text-[11px] text-slate-400">ดาวที่สะสม</div>
+          <div class="font-pixel text-lg sm:text-xl text-emerald-400 mt-1">8/8</div>
+        </div>
+        <div class="border-l border-slate-700/60 pl-2">
+          <div class="text-[11px] text-slate-400">รางวัล</div>
+          <div id="win-final-reward" class="text-xs sm:text-sm font-bold text-amber-300 mt-1">⭐ นักสำรวจมือใหม่</div>
+        </div>
+      </div>
+
+      <div class="w-full glass-card p-3.5 rounded-xl text-left border-amber-400/30 bg-amber-950/20">
+        <div class="text-xs font-semibold text-amber-300 flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-gift"></i> โบนัสพิชิตภารกิจ
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">เก็บดาวครบ 8 ดวง รับโบนัส <strong class="text-yellow-300">+1,000 คะแนน</strong></p>
+      </div>
+
+      <div class="w-full glass-card p-3.5 rounded-xl text-left border-cyan-500/30 bg-cyan-950/20">
+        <div class="text-xs font-semibold text-cyan-300 flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-graduation-cap"></i> ผู้พิชิตระบบสุริยะ
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          คุณได้รับฉายา <strong class="text-amber-300">"ปรมาจารย์แห่งดาราศาสตร์"</strong> ขอบคุณที่ร่วมเดินทางสำรวจอวกาศและเรียนรู้เรื่องราวของดาวเคราะห์ไปด้วยกัน!
+        </p>
+      </div>
+
+      <!-- Play Again Button -->
+      <button id="win-replay-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-bold text-lg tracking-wide shadow-lg btn-glow hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
+        <i class="fa-solid fa-rotate-right"></i> เล่นใหม่อีกครั้ง
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Start Modal -->
+  <div id="start-modal" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+    <div class="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center gap-5 shadow-2xl border-cyan-500/30">
+      
+      <div class="w-20 h-20 rounded-full bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-4xl text-cyan-400 mb-1 shadow-[0_0_25px_rgba(34,211,238,0.3)]">
+        <i class="fa-solid fa-user-astronaut"></i>
+      </div>
+
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300">
+          ล่าดวงดาว หนีอุกกาบาต 3D
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+          สำรวจระบบสุริยะ หลบหลีก <span class="text-rose-400 font-semibold">อุกกาบาตยักษ์</span> เก็บดาวครบ 8 ดวงเพื่อพิชิตเป้าหมาย!
+        </p>
+      </div>
+
+      <!-- Feature Badges -->
+      <div class="grid grid-cols-3 gap-2.5 w-full text-left my-1">
+        <div class="glass-card p-2.5 rounded-xl flex flex-col items-center text-center border-cyan-400/30">
+          <i class="fa-solid fa-hand-pointer text-cyan-400 text-lg mb-1 animate-bounce"></i>
+          <span class="text-[11px] text-cyan-200 font-semibold">กล้องมือ & จีบนิ้วยิง</span>
+        </div>
+        <div class="glass-card p-2.5 rounded-xl flex flex-col items-center text-center border-amber-400/30">
+          <i class="fa-solid fa-brain text-amber-400 text-lg mb-1"></i>
+          <span class="text-[11px] text-amber-200 font-semibold">คำถาม & ปลดล็อก Level</span>
+        </div>
+        <div class="glass-card p-2.5 rounded-xl flex flex-col items-center text-center border-purple-400/30">
+          <i class="fa-solid fa-shield-halved text-purple-400 text-lg mb-1"></i>
+          <span class="text-[11px] text-purple-200 font-semibold">บาเรีย & แม่เหล็ก</span>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex flex-col gap-2.5 w-full">
+        <button id="start-btn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white font-bold text-base sm:text-lg tracking-wide shadow-lg btn-glow hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-rocket"></i> เริ่มภารกิจอวกาศ
+        </button>
+
+        <button id="open-gallery-btn" class="w-full py-2.5 rounded-2xl glass-panel hover:bg-slate-800 text-cyan-300 font-semibold text-xs sm:text-sm tracking-wide border-cyan-400/40 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-book-journal-whills"></i> สมุดภาพระบบสุริยะ (Planetpedia 3D)
+        </button>
+      </div>
+
+      <div class="text-[11px] text-slate-300 bg-cyan-950/40 px-3 py-2 rounded-xl border border-cyan-500/20 text-left w-full">
+        <i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> <strong>วิธีบังคับ:</strong> ขยับมือหน้ากล้อง (จีบนิ้วเพื่อยิงเลเซอร์) หรือใช้ปุ่มกดบนหน้าจอ / คีย์บอร์ด [A][D]/[←][→] และ [Spacebar]
+      </div>
+    </div>
+  </div>
+
+  <!-- Planet Gallery / Planetpedia Modal -->
+  <div id="gallery-modal" class="absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg hidden">
+    <div class="glass-panel max-w-2xl w-full rounded-3xl p-5 sm:p-7 flex flex-col gap-4 shadow-2xl border-cyan-400/40 max-h-[90vh]">
+      
+      <div class="flex justify-between items-center border-b border-slate-700/80 pb-3">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-globe text-2xl text-cyan-400"></i>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">สมุดภาพสารานุกรมดาวเคราะห์ (Planetpedia)</h2>
+        </div>
+        <button id="close-gallery-btn" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-lg active:scale-95 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- 3D Planet Preview Box -->
+      <div class="relative w-full h-44 sm:h-52 bg-slate-950/80 rounded-2xl border border-cyan-500/30 overflow-hidden flex items-center justify-center">
+        <div id="gallery-3d-container" class="absolute inset-0"></div>
+        <div class="absolute bottom-2 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-700 text-[11px] text-slate-300">
+          <i class="fa-solid fa-arrows-rotate mr-1 text-cyan-400"></i> ดาวเคราะห์หมุนแสดงผล 3D
+        </div>
+      </div>
+
+      <!-- Planet Selector Tabs -->
+      <div id="planet-tabs" class="flex gap-1.5 overflow-x-auto pb-1">
+        <!-- Generated dynamic tabs -->
+      </div>
+
+      <!-- Selected Planet Info Box -->
+      <div class="glass-card p-4 rounded-2xl flex flex-col gap-1.5 text-left bg-slate-900/60 border-cyan-500/20">
+        <div id="p-gallery-title" class="text-base sm:text-lg font-bold text-cyan-300">ดาวเคราะห์</div>
+        <p id="p-gallery-desc" class="text-xs sm:text-sm text-slate-200 leading-relaxed">เลือกดาวเคราะห์ด้านบนเพื่ออ่านเกร็ดความรู้ทางดาราศาสตร์</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Pause Modal -->
+  <div id="pause-modal" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+    <div class="glass-panel max-w-sm w-full rounded-3xl p-6 text-center flex flex-col items-center gap-4 shadow-2xl border-cyan-400/40">
+      <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-3xl text-cyan-400">
+        <i class="fa-solid fa-pause"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white">พักเกมชั่วคราว</h2>
+      <p class="text-xs text-slate-300">ยานสำรวจหยุดรอคำสั่งจากศูนย์ควบคุม</p>
+      
+      <div class="flex flex-col gap-2 w-full mt-2">
+        <button id="resume-btn" class="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm transition active:scale-95">
+          <i class="fa-solid fa-play mr-1"></i> เล่นต่อ
+        </button>
+        <button id="restart-from-pause-btn" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 font-semibold text-xs border border-slate-700 transition active:scale-95">
+          <i class="fa-solid fa-rotate-right mr-1"></i> เริ่มเกมใหม่
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="over-modal" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md hidden">
+    <div class="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center gap-5 shadow-2xl border-rose-500/30">
+      
+      <div id="over-icon-box" class="w-20 h-20 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-4xl text-rose-500 mb-1 shadow-[0_0_20px_rgba(244,63,94,0.3)]">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <div>
+        <h2 id="over-title" class="text-2xl sm:text-3xl font-bold text-rose-400">ภารกิจสิ้นสุดลง!</h2>
+        <p id="over-subtitle" class="text-xs sm:text-sm text-slate-300 mt-1">สูญเสียยานสำรวจจากแรงพุ่งชนของอุกกาบาต</p>
+      </div>
+
+      <!-- Score summary -->
+      <div class="w-full glass-card p-4 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+        <div class="border-r border-slate-700/60 pr-1">
+          <div class="text-[11px] text-slate-400">LEVEL</div>
+          <div id="final-level" class="font-pixel text-lg sm:text-xl text-amber-300 mt-1">1</div>
+        </div>
+        <div class="border-r border-slate-700/60 px-1">
+          <div class="text-[11px] text-slate-400">คะแนนรวม</div>
+          <div id="final-score" class="font-pixel text-lg sm:text-xl text-yellow-300 mt-1">0</div>
+        </div>
+        <div class="pl-1">
+          <div class="text-[11px] text-slate-400">ดาวที่เก็บได้</div>
+          <div id="final-planets" class="font-pixel text-lg sm:text-xl text-cyan-300 mt-1">0</div>
+        </div>
+        <div class="border-l border-slate-700/60 pl-2">
+          <div class="text-[11px] text-slate-400">รางวัล</div>
+          <div id="final-reward" class="text-xs sm:text-sm font-bold text-amber-300 mt-1">⭐ นักสำรวจมือใหม่</div>
+        </div>
+      </div>
+
+      <!-- Educational Fact Summary -->
+      <div class="w-full glass-card p-3.5 rounded-xl text-left border-amber-500/20 bg-amber-500/5">
+        <div class="text-xs font-semibold text-amber-300 flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-lightbulb"></i> รู้หรือไม่? (เกร็ดดาราศาสตร์)
+        </div>
+        <p id="final-fact" class="text-xs text-slate-300 leading-relaxed">
+          แถบอุกกาบาตหลัก (Main Asteroid Belt) ตั้งอยู่ระหว่างวงโคจรของดาวอังคารและดาวพฤหัสบดี ประกอบไปด้วยก้อนหินอวกาศนับล้านก้อน!
+        </p>
+      </div>
+
+      <!-- Retry Button -->
+      <button id="retry-btn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 via-rose-600 to-amber-600 text-white font-bold text-lg tracking-wide shadow-lg hover:opacity-95 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer">
+        <i class="fa-solid fa-rotate-right"></i> เริ่มภารกิจใหม่อีกครั้ง
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    // --- Audio Sound Synthesizer & Music Engine (Web Audio API) ---
+    let audioCtx = null;
+    let isMuted = false;
+    let bgMusicGain = null;
+    let bgMusicTimer = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      startBgAmbientMusic();
+    }
+
+    function toggleSound() {
+      isMuted = !isMuted;
+      const icon = document.getElementById('sound-icon');
+      if (isMuted) {
+        if (icon) icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+        if (bgMusicGain) bgMusicGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      } else {
+        if (icon) icon.className = 'fa-solid fa-volume-high text-emerald-400';
+        if (bgMusicGain) bgMusicGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      }
+    }
+
+    // Melodic Background Music Pattern (Space Odyssey Melodic Loop)
+    function startBgAmbientMusic() {
+      if (!audioCtx || bgMusicTimer) return;
+      
+      bgMusicGain = audioCtx.createGain();
+      bgMusicGain.gain.setValueAtTime(isMuted ? 0 : 0.06, audioCtx.currentTime);
+      bgMusicGain.connect(audioCtx.destination);
+
+      // Multi-layer Arpeggiated Melody Sequence (Space Synth Style)
+      const bassNotes = [110, 110, 130.81, 146.83, 164.81, 146.83, 130.81, 97.99]; // A2, A2, C3, D3, E3, D3, C3, G2
+      const melodyNotes = [220, 329.63, 392.00, 440.00, 523.25, 440.00, 392.00, 329.63]; // A3, E4, G4, A4, C5, A4, G4, E4
+      let step = 0;
+
+      bgMusicTimer = setInterval(() => {
+        if (isMuted || !audioCtx || gameState !== 'PLAYING') return;
+        try {
+          const now = audioCtx.currentTime;
+          
+          // Bass Synth Note
+          const bassOsc = audioCtx.createOscillator();
+          const bassGain = audioCtx.createGain();
+          bassOsc.type = 'triangle';
+          bassOsc.frequency.setValueAtTime(bassNotes[step % bassNotes.length], now);
+          bassGain.gain.setValueAtTime(0.05, now);
+          bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          bassOsc.connect(bassGain);
+          bassGain.connect(bgMusicGain);
+          bassOsc.start(now);
+          bassOsc.stop(now + 0.28);
+
+          // Lead Synth Melody Note
+          if (step % 2 === 0) {
+            const leadOsc = audioCtx.createOscillator();
+            const leadGain = audioCtx.createGain();
+            leadOsc.type = 'sine';
+            leadOsc.frequency.setValueAtTime(melodyNotes[(step / 2) % melodyNotes.length], now);
+            leadGain.gain.setValueAtTime(0.035, now);
+            leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            leadOsc.connect(leadGain);
+            leadGain.connect(bgMusicGain);
+            leadOsc.start(now);
+            leadOsc.stop(now + 0.4);
+          }
+
+          step++;
+        } catch (e) {}
+      }, 200);
+    }
+
+    function playSound(type) {
+      if (!audioCtx || isMuted) return;
+      try {
+        const now = audioCtx.currentTime;
+        
+        if (type === 'start' || type === 'levelup') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.45);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else if (type === 'laser') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'explosion') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(120, now);
+          osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'collect') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.08);
+          osc.frequency.setValueAtTime(783.99, now + 0.16);
+          osc.frequency.setValueAtTime(1046.50, now + 0.24);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'correct') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(880.00, now + 0.12); // A5
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        } else if (type === 'wrong') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.setValueAtTime(140, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'powerup') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'hit') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'win') {
+          // Victory Fanfare Audio Sequence
+          const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+            gain.gain.setValueAtTime(0.3, now + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.1);
+            osc.stop(now + idx * 0.1 + 0.5);
+          });
+        } else if (type === 'gameover') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.linearRampToValueAtTime(80, now + 0.6);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        }
+      } catch (e) {
+        console.warn("Audio error:", e);
+      }
+    }
+
+    const PLANETS_DATA = [
+      { 
+        name: "ดาวพุธ (Mercury)", 
+        color: 0xa3a3a3, 
+        size: 0.95, 
+        fact: "ดาวพุธเป็นดาวเคราะห์ที่อยู่ใกล้ดวงอาทิตย์ที่สุด โคจรรอบดวงอาทิตย์เร็วที่สุดในระบบสุริยะ!",
+        quiz: {
+          q: "ดาวเคราะห์ดวงใดที่โคจรรอบดวงอาทิตย์ใช้เวลาน้อยที่สุด (เร็วที่สุด)?",
+          options: ["ดาวพุธ", "ดาวศุกร์", "โลก", "ดาวอังคาร"],
+          answer: 0,
+          explain: "ถูกต้อง! ดาวพุธอยู่ใกล้ดวงอาทิตย์ที่สุด จึงใช้เวลาโคจรรอบดวงอาทิตย์เพียง 88 วันเท่านั้น"
+        }
+      },
+      { 
+        name: "ดาวศุกร์ (Venus)", 
+        color: 0xeab308, 
+        size: 1.15, 
+        fact: "ดาวศุกร์เป็นดาวเคราะห์ที่ร้อนที่สุด ด้วยปรากฏการณ์เรือนกระจกขั้นรุนแรงที่ดักจับความร้อนไว้!",
+        quiz: {
+          q: "ทำไมดาวศุกร์จึงเป็นดาวเคราะห์ที่ร้อนที่สุดในระบบสุริยะ?",
+          options: ["อยู่ใกล้ดวงอาทิตย์ที่สุด", "มีปรากฏการณ์เรือนกระจกขั้นรุนแรง", "มีภูเขาไฟระเบิดตลอดเวลา", "ไม่มีชั้นบรรยากาศ"],
+          answer: 1,
+          explain: "ถูกต้อง! ชั้นบรรยากาศก๊าซคาร์บอนไดออกไซด์ที่หนาแน่นทำให้เกิดปรากฏการณ์เรือนกระจกดักจับความร้อนไว้"
+        }
+      },
+      { 
+        name: "โลก (Earth)", 
+        color: 0x3b82f6, 
+        size: 1.25, 
+        fact: "โลกเป็นดาวเคราะห์ดวงเดียวที่ค้นพบว่ามีสิ่งมีชีวิต น้ำในรูปของเหลว และชั้นบรรยากาศที่เหมาะสม!",
+        quiz: {
+          q: "พื้นผิวของโลกประกอบด้วยน้ำในรูปแบบของเหลวประมาณกี่เปอร์เซ็นต์?",
+          options: ["ประมาณ 30%", "ประมาณ 50%", "ประมาณ 71%", "ประมาณ 90%"],
+          answer: 2,
+          explain: "ถูกต้อง! พื้นผิวโลกครอบคลุมด้วยมหาสมุทรและน้ำประมาณ 71% จึงได้ชื่อว่า 'ดาวเคราะห์สีน้ำเงิน'"
+        }
+      },
+      { 
+        name: "ดาวอังคาร (Mars)", 
+        color: 0xef4444, 
+        size: 1.05, 
+        fact: "ดาวอังคารมีฉายาว่า 'ดาวเคราะห์สีแดง' เนื่องจากมีเหล็กออกไซด์ (สนิม) ปกคลุมทั่วพื้นผิว!",
+        quiz: {
+          q: "สิ่งใดที่ทำให้ดาวอังคารมองเห็นเป็นสีแดงจากอวกาศ?",
+          options: ["หินลาวาร้อน", "เหล็กออกไซด์ (สนิมเหล็ก) บนพื้นผิว", "ฝุ่นสีแดงจากดวงอาทิตย์", "ก๊าซมีเทนในบรรยากาศ"],
+          answer: 1,
+          explain: "ถูกต้อง! เหล็กออกไซด์หรือสนิมเหล็กจำนวนมากบนพื้นผิวสะท้อนแสงทำให้เห็นเป็นสีแดง"
+        }
+      },
+      { 
+        name: "ดาวพฤหัสบดี (Jupiter)", 
+        color: 0xd97706, 
+        size: 1.85, 
+        fact: "ดาวพฤหัสบดีเป็นดาวเคราะห์ยักษ์ใหญ่ที่สุด มีจุดแดงใหญ่ (Great Red Spot) ซึ่งเป็นพายุหมุนยักษ์!",
+        quiz: {
+          q: "'จุดแดงใหญ่' (Great Red Spot) บนดาวพฤหัสบดีคือปรากฏการณ์อะไร?",
+          options: ["ภูเขาไฟขนาดใหญ่", "พายุหมุนยักษ์ที่พัดมาหลายร้อยปี", "มหาสมุทรลาวา", "รอยชนของอุกกาบาต"],
+          answer: 1,
+          explain: "ถูกต้อง! จุดแดงใหญ่เป็นพายุหมุนยักษ์ขนาดใหญ่กว่าโลกที่หมุนวนมานานหลายร้อยปี"
+        }
+      },
+      { 
+        name: "ดาวเสาร์ (Saturn)", 
+        color: 0xfde047, 
+        size: 1.55, 
+        hasRing: true, 
+        ringColor: 0xca8a04, 
+        fact: "ดาวเสาร์มีระบบวงแหวนอันโดดเด่นและสวยงามที่สุด ซึ่งทำมาจากก้อนน้ำแข็งและเศษหิน!",
+        quiz: {
+          q: "วงแหวนอันโดดเด่นของดาวเสาร์ประกอบขึ้นจากสิ่งใดเป็นหลัก?",
+          options: ["ก๊าซร้อนและเปลวไฟ", "ก้อนน้ำแข็ง เศษหิน และฝุ่น", "โลหะเงินหลอมเหลว", "ดาวเทียมเก่า"],
+          answer: 1,
+          explain: "ถูกต้อง! วงแหวนของดาวเสาร์ทำจากอนุภาคน้ำแข็ง เศษหิน และฝุ่นอวกาศจำนวนนับไม่ถ้วน"
+        }
+      },
+      { 
+        name: "ดาวยูเรนัส (Uranus)", 
+        color: 0x06b6d4, 
+        size: 1.35, 
+        hasRing: true, 
+        ringColor: 0x67e8f9, 
+        fact: "ดาวยูเรนัสหมุนรอบตัวเองเอียงถึง 98 องศา เหมือนกำลังหมุนตะแคงไปตามแนววงโคจร!",
+        quiz: {
+          q: "แกนการหมุนรอบตัวเองของดาวยูเรนัสมีความแปลกประหลาดอย่างไร?",
+          options: ["หมุนเร็วกว่าแสง", "เอียงเกือบ 98 องศา (หมุนตะแคง)", "ไม่เคยหมุนรอบตัวเองเลย", "หมุนกลับทิศทุกๆ 10 ปี"],
+          answer: 1,
+          explain: "ถูกต้อง! ดาวยูเรนัสมีแกนเอียงถึงประมาณ 98 องศา ทำให้เหมือนหมุนตะแคงไปข้างๆ"
+        }
+      },
+      { 
+        name: "ดาวเนปจูน (Neptune)", 
+        color: 0x2563eb, 
+        size: 1.35, 
+        fact: "ดาวเนปจูนเป็นดาวเคราะห์น้ำแข็งยักษ์ ห่างไกลที่สุด มีกระแสลมรุนแรงความเร็วมากกว่า 2,000 กม./ชม.!",
+        quiz: {
+          q: "ดาวเนปจูนจัดอยู่ในกลุ่มดาวเคราะห์ประเภทใด?",
+          options: ["ดาวเคราะห์หิน", "ดาวเคราะห์น้ำแข็งยักษ์ (Ice Giant)", "ดาวแคระสีเทา", "ดาวเคราะห์ก๊าซร้อน"],
+          answer: 1,
+          explain: "ถูกต้อง! ดาวเนปจูนเป็นดาวเคราะห์น้ำแข็งยักษ์ที่มีองค์ประกอบหลักเป็นน้ำ มีเทน และแอมโมเนีย"
+        }
+      }
+    ];
+
+    // Total target planets to finish game
+    const TOTAL_PLANETS_WIN_COUNT = 8;
+
+    // Game state variables
+    let gameState = 'START'; // 'START', 'PLAYING', 'PAUSED', 'QUIZ', 'WIN', 'GAMEOVER'
+    let score = 0;
+    let highScore = 0;
+    let lives = 3;
+    let comboCount = 0;
+    let planetsCollectedCount = 0;
+    let nextPlanetIndex = 0;
+    let currentLevel = 1;
+
+    let playerTargetX = 0;
+    let playerCurrentX = 0;
+    let handSmoothedX = 0;
+    let isPinching = false;
+
+    // Power-up states
+    let hasShield = false;
+    let isMagnetActive = false;
+    let magnetTimer = 0;
+    let isSpeedActive = false;
+    let speedTimer = 0;
+
+    // Active Quiz Temp Data
+    let activeQuizData = null;
+    let victoryBonusAwarded = false;
+
+    // Score Rewards
+    function getRewardInfo(currentScore) {
+      if (currentScore >= 5000) {
+        return { icon: '🏆', title: 'ปรมาจารย์แห่งดาราศาสตร์', color: 'text-yellow-300' };
+      }
+      if (currentScore >= 2500) {
+        return { icon: '⭐⭐⭐', title: 'นักสำรวจจักรวาล', color: 'text-cyan-300' };
+      }
+      if (currentScore >= 1000) {
+        return { icon: '⭐⭐', title: 'นักบินอวกาศ', color: 'text-emerald-300' };
+      }
+      return { icon: '⭐', title: 'นักสำรวจมือใหม่', color: 'text-amber-200' };
+    }
+
+    function updateRewardHUD() {
+      const reward = getRewardInfo(score);
+      const el = document.getElementById('reward-val');
+      if (el) {
+        el.innerText = `${reward.icon} ${reward.title}`;
+        el.className = `text-[11px] sm:text-xs font-bold ${reward.color}`;
+      }
+    }
+
+    function updateLaserAmmoHUD() {
+      const el = document.getElementById('laser-ammo-val');
+      if (el) el.innerText = `${laserAmmo}/${MAX_LASER_AMMO}`;
+      const btn = document.getElementById('btn-laser');
+      if (btn) {
+        btn.classList.toggle('opacity-40', laserAmmo <= 0);
+        btn.classList.toggle('grayscale', laserAmmo <= 0);
+      }
+    }
+
+    function addScore(points) {
+      score += points;
+      const scoreEl = document.getElementById('score-val');
+      if (scoreEl) scoreEl.innerText = score;
+      updateRewardHUD();
+    }
+
+    // Three.js Core Objects
+    let scene, camera, renderer;
+    let playerShip, shieldMesh, engineParticles = [];
+    let starField;
+    let obstacles = [];
+    let collectibles = [];
+    let powerups = [];
+    let lasers = [];
+    let explosionParticles = [];
+
+    let spawnTimer = 0;
+    let planetSpawnTimer = 0;
+    let powerupSpawnTimer = 0;
+    let totalItemsCollected = 0;
+    let laserCooldown = 0;
+    let laserAmmo = 20;
+    const MAX_LASER_AMMO = 20;
+
+    // Gallery 3D scene preview objects
+    let galleryScene, galleryCamera, galleryRenderer, galleryPlanetMesh;
+
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      container.innerHTML = '';
+
+      // Main Scene
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x030712, 0.012);
+
+      // Camera
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 3.8, 7.5);
+      camera.lookAt(0, 0, -5);
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
+      dirLight.position.set(6, 14, 8);
+      scene.add(dirLight);
+
+      const pointLight = new THREE.PointLight(0xf43f5e, 1.8, 18);
+      pointLight.position.set(0, 1, 2);
+      scene.add(pointLight);
+
+      createStarField();
+      createPlayerShip();
+
+      window.addEventListener('resize', onWindowResize);
+
+      // Keyboard Controls
+      window.addEventListener('keydown', (e) => {
+        if (gameState !== 'PLAYING') return;
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          playerTargetX = Math.max(-4.2, playerTargetX - 1.3);
+        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          playerTargetX = Math.min(4.2, playerTargetX + 1.3);
+        } else if (e.key === ' ' || e.code === 'Space') {
+          fireLaser();
+        }
+      });
+
+      initGallery3D();
+      animate();
+    }
+
+    function createStarField() {
+      const count = 1800;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 140;
+        positions[i + 1] = (Math.random() - 0.5) * 90;
+        positions[i + 2] = -Math.random() * 220;
+      }
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.85,
+        transparent: true,
+        opacity: 0.85
+      });
+      starField = new THREE.Points(geometry, material);
+      scene.add(starField);
+    }
+
+    function createPlayerShip() {
+      playerShip = new THREE.Group();
+
+      const bodyGeo = new THREE.ConeGeometry(0.55, 2.8, 6);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        roughness: 0.2,
+        metalness: 0.95
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.rotation.x = Math.PI / 2;
+      body.scale.set(1, 1, 0.65);
+      playerShip.add(body);
+
+      const noseGeo = new THREE.ConeGeometry(0.22, 1.2, 6);
+      const noseMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        roughness: 0.1,
+        metalness: 0.9,
+        emissive: 0x0369a1,
+        emissiveIntensity: 0.4
+      });
+      const nose = new THREE.Mesh(noseGeo, noseMat);
+      nose.rotation.x = Math.PI / 2;
+      nose.position.set(0, 0, -1.05);
+      playerShip.add(nose);
+
+      const createWing = (isLeft) => {
+        const side = isLeft ? -1 : 1;
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(0, 0.2);
+        wingShape.lineTo(side * 2.3, -0.7);
+        wingShape.lineTo(side * 2.1, -1.4);
+        wingShape.lineTo(side * 0.4, -0.6);
+        wingShape.closePath();
+
+        const extrudeSettings = { depth: 0.08, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.03, bevelThickness: 0.03 };
+        const wingGeo = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: 0x1e293b,
+          roughness: 0.25,
+          metalness: 0.85
+        });
+        const wingMesh = new THREE.Mesh(wingGeo, wingMat);
+        wingMesh.rotation.x = Math.PI / 2;
+
+        const stripGeo = new THREE.BoxGeometry(1.5, 0.04, 0.06);
+        const stripMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const strip = new THREE.Mesh(stripGeo, stripMat);
+        strip.position.set(side * 1.1, 0, -0.75);
+        strip.rotation.y = side * -0.28;
+        playerShip.add(strip);
+
+        const emitterGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.7, 8);
+        const emitterMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7 });
+        const emitter = new THREE.Mesh(emitterGeo, emitterMat);
+        emitter.rotation.x = Math.PI / 2;
+        emitter.position.set(side * 2.15, 0, -0.85);
+        playerShip.add(emitter);
+
+        return wingMesh;
+      };
+
+      playerShip.add(createWing(true));
+      playerShip.add(createWing(false));
+
+      const glassGeo = new THREE.SphereGeometry(0.38, 16, 16);
+      glassGeo.scale(0.8, 0.6, 1.8);
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.5,
+        roughness: 0.1,
+        metalness: 0.1,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1
+      });
+      const glass = new THREE.Mesh(glassGeo, glassMat);
+      glass.position.set(0, 0.28, -0.2);
+      playerShip.add(glass);
+
+      [-0.45, 0.45].forEach(xPos => {
+        const engGeo = new THREE.CylinderGeometry(0.18, 0.24, 0.9, 12);
+        const engMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9, roughness: 0.2 });
+        const engine = new THREE.Mesh(engGeo, engMat);
+        engine.rotation.x = Math.PI / 2;
+        engine.position.set(xPos, 0, 0.85);
+        playerShip.add(engine);
+
+        const ringGeo = new THREE.RingGeometry(0.1, 0.22, 16);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.position.set(xPos, 0, 1.31);
+        playerShip.add(ring);
+      });
+
+      const shieldGeo = new THREE.SphereGeometry(1.6, 24, 24);
+      const shieldMat = new THREE.MeshBasicMaterial({
+        color: 0x22d3ee,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.0
+      });
+      shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+      playerShip.add(shieldMesh);
+
+      playerShip.position.set(0, 0, 0);
+      scene.add(playerShip);
+    }
+
+    function fireLaser() {
+      if (gameState !== 'PLAYING' || laserCooldown > 0 || laserAmmo <= 0) return;
+      
+      playSound('laser');
+      laserCooldown = 10;
+      laserAmmo--;
+      updateLaserAmmoHUD();
+
+      [-2.15, 2.15].forEach(offsetX => {
+        const laserGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.4, 8);
+        const laserMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+        const laser = new THREE.Mesh(laserGeo, laserMat);
+        laser.rotation.x = Math.PI / 2;
+        laser.position.set(playerShip.position.x + offsetX, playerShip.position.y, playerShip.position.z - 1.2);
+        
+        scene.add(laser);
+        lasers.push(laser);
+      });
+    }
+
+    function createExplosion(pos, colorHex = 0xe11d48) {
+      playSound('explosion');
+      for (let i = 0; i < 20; i++) {
+        const pGeo = new THREE.SphereGeometry(0.12 + Math.random() * 0.1, 6, 6);
+        const pMat = new THREE.MeshBasicMaterial({ color: colorHex });
+        const p = new THREE.Mesh(pGeo, pMat);
+        p.position.copy(pos);
+        p.userData = {
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          vz: (Math.random() - 0.5) * 0.35,
+          life: 25
+        };
+        scene.add(p);
+        explosionParticles.push(p);
+      }
+    }
+
+    function spawnMeteor() {
+      const radius = 0.7 + Math.random() * 0.85;
+      const geometry = new THREE.DodecahedronGeometry(radius, 1);
+
+      const posAttr = geometry.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        const vx = posAttr.getX(i);
+        const vy = posAttr.getY(i);
+        const vz = posAttr.getZ(i);
+        const scale = 0.8 + Math.random() * 0.35;
+        posAttr.setXYZ(i, vx * scale, vy * scale, vz * scale);
+      }
+      geometry.computeVertexNormals();
+
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xe11d48,
+        roughness: 0.9,
+        metalness: 0.15
+      });
+
+      const meteor = new THREE.Mesh(geometry, material);
+      const spawnX = (Math.random() - 0.5) * 8.8;
+      
+      // Speed scales up with Level
+      const baseSpeed = 0.45 + (currentLevel - 1) * 0.12;
+      
+      meteor.position.set(spawnX, (Math.random() - 0.5) * 1.5, -95);
+      meteor.userData = {
+        rotSpeedX: (Math.random() - 0.5) * 0.05,
+        rotSpeedY: (Math.random() - 0.5) * 0.05,
+        speed: baseSpeed + Math.random() * 0.25,
+        radius: radius
+      };
+
+      scene.add(meteor);
+      obstacles.push(meteor);
+    }
+
+    function spawnPowerup() {
+      const types = [
+        'SHIELD', 'MAGNET', 'REPAIR', 'SPEED', 'SCORE', 'AMMO',
+        'COIN', 'CRYSTAL', 'ENERGY', 'STAR_GOLD', 'BOOST', 'BIG_CRYSTAL'
+      ];
+      const type = types[Math.floor(Math.random() * types.length)];
+
+      const info = {
+        SHIELD:      { color: 0x22d3ee, shape: 'octa', score: 0, label: 'โล่' },
+        MAGNET:      { color: 0xa855f7, shape: 'octa', score: 0, label: 'แม่เหล็ก' },
+        REPAIR:      { color: 0xf43f5e, shape: 'sphere', score: 0, label: 'หัวใจ' },
+        SPEED:       { color: 0xfacc15, shape: 'octa', score: 0, label: 'ความเร็ว' },
+        SCORE:       { color: 0x22c55e, shape: 'octa', score: 250, label: '+250' },
+        AMMO:        { color: 0xfb7185, shape: 'box', score: 0, label: 'กระสุน' },
+        COIN:        { color: 0xf59e0b, shape: 'coin', score: 50, label: '+50' },
+        CRYSTAL:     { color: 0x06b6d4, shape: 'diamond', score: 100, label: '+100' },
+        ENERGY:      { color: 0x8b5cf6, shape: 'ring', score: 150, label: '+150' },
+        STAR_GOLD:   { color: 0xfde047, shape: 'star', score: 500, label: '+500' },
+        BOOST:       { color: 0xf97316, shape: 'cone', score: 200, label: '+200' },
+        BIG_CRYSTAL: { color: 0xec4899, shape: 'diamondBig', score: 1000, label: '+1000' }
+      }[type];
+
+      const group = new THREE.Group();
+      let mesh;
+
+      if (info.shape === 'sphere') {
+        mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(0.62, 18, 18),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.18, metalness: 0.55, emissive: info.color, emissiveIntensity: 0.18 })
+        );
+      } else if (info.shape === 'box') {
+        mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 0.9, 0.9),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.2, metalness: 0.8, emissive: info.color, emissiveIntensity: 0.2 })
+        );
+      } else if (info.shape === 'coin') {
+        mesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.62, 0.62, 0.18, 24),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.18, metalness: 0.95, emissive: info.color, emissiveIntensity: 0.15 })
+        );
+        mesh.rotation.z = Math.PI / 2;
+      } else if (info.shape === 'ring') {
+        mesh = new THREE.Mesh(
+          new THREE.TorusGeometry(0.48, 0.14, 10, 24),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.15, metalness: 0.8, emissive: info.color, emissiveIntensity: 0.25 })
+        );
+      } else if (info.shape === 'diamond' || info.shape === 'diamondBig') {
+        const size = info.shape === 'diamondBig' ? 0.9 : 0.62;
+        mesh = new THREE.Mesh(
+          new THREE.OctahedronGeometry(size, 0),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.12, metalness: 0.75, emissive: info.color, emissiveIntensity: 0.28 })
+        );
+      } else if (info.shape === 'star') {
+        const shape = new THREE.Shape();
+        for (let i = 0; i < 10; i++) {
+          const a = -Math.PI / 2 + i * Math.PI / 5;
+          const r = i % 2 === 0 ? 0.78 : 0.34;
+          const x = Math.cos(a) * r;
+          const y = Math.sin(a) * r;
+          if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+        }
+        shape.closePath();
+        const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 2 });
+        mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.16, metalness: 0.7, emissive: info.color, emissiveIntensity: 0.3 }));
+      } else if (info.shape === 'cone') {
+        mesh = new THREE.Mesh(
+          new THREE.ConeGeometry(0.55, 1.1, 8),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.2, metalness: 0.7, emissive: info.color, emissiveIntensity: 0.22 })
+        );
+      } else {
+        mesh = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.65, 0),
+          new THREE.MeshStandardMaterial({ color: info.color, roughness: 0.2, metalness: 0.8, emissive: info.color, emissiveIntensity: 0.18 })
+        );
+      }
+
+      group.add(mesh);
+      const spawnX = (Math.random() - 0.5) * 8.2;
+      group.position.set(spawnX, (Math.random() - 0.5) * 1.5, -95);
+      group.userData = {
+        type,
+        radius: info.shape === 'diamondBig' || info.shape === 'star' ? 0.95 : 0.72,
+        speed: 0.42 + Math.random() * 0.12,
+        score: info.score,
+        label: info.label
+      };
+
+      scene.add(group);
+      powerups.push(group);
+    }
+
+    function spawnNextPlanet() {
+      // If player already collected all 8 planets, stop spawning new planets
+      if (planetsCollectedCount >= TOTAL_PLANETS_WIN_COUNT) return;
+
+      if (nextPlanetIndex >= PLANETS_DATA.length) {
+        nextPlanetIndex = 0;
+      }
+
+      const pData = PLANETS_DATA[nextPlanetIndex];
+      const pGroup = new THREE.Group();
+
+      const sphereGeo = new THREE.SphereGeometry(pData.size, 32, 32);
+      const sphereMat = new THREE.MeshStandardMaterial({
+        color: pData.color,
+        roughness: 0.5,
+        metalness: 0.2
+      });
+      const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+      pGroup.add(sphere);
+
+      const atmoGeo = new THREE.SphereGeometry(pData.size * 1.08, 16, 16);
+      const atmoMat = new THREE.MeshBasicMaterial({
+        color: pData.color,
+        transparent: true,
+        opacity: 0.2,
+        wireframe: true
+      });
+      pGroup.add(new THREE.Mesh(atmoGeo, atmoMat));
+
+      if (pData.hasRing) {
+        const ringGeo = new THREE.RingGeometry(pData.size * 1.35, pData.size * 2.1, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: pData.ringColor,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.85
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.4;
+        pGroup.add(ring);
+      }
+
+      const spawnX = (Math.random() - 0.5) * 7.8;
+      pGroup.position.set(spawnX, (Math.random() - 0.5) * 1.0, -100);
+      pGroup.userData = {
+        planetInfo: pData,
+        index: nextPlanetIndex,
+        speed: 0.35,
+        radius: pData.size
+      };
+
+      scene.add(pGroup);
+      collectibles.push(pGroup);
+
+      nextPlanetIndex++;
+    }
+
+    function checkLevelUp() {
+      // Level increases every 2 planets collected
+      const targetLevel = Math.floor(planetsCollectedCount / 2) + 1;
+      if (targetLevel > currentLevel) {
+        currentLevel = targetLevel;
+        document.getElementById('level-val').innerText = currentLevel;
+        showLevelUpBanner();
+      }
+    }
+
+    function showLevelUpBanner() {
+      playSound('levelup');
+      const banner = document.getElementById('levelup-banner');
+      document.getElementById('levelup-text').innerText = `LEVEL ${currentLevel}`;
+
+      banner.classList.remove('opacity-0', '-translate-y-4');
+      banner.classList.add('opacity-100', 'translate-y-0', 'animate-level-up');
+
+      setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0', 'animate-level-up');
+        banner.classList.add('opacity-0', '-translate-y-4');
+      }, 3000);
+    }
+
+    function showFactPopup(title, text) {
+      const popup = document.getElementById('fact-popup');
+      document.getElementById('fact-title').innerText = title;
+      document.getElementById('fact-body').innerText = text;
+
+      popup.classList.remove('opacity-0', '-translate-y-4');
+      popup.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        popup.classList.remove('opacity-100', 'translate-y-0');
+        popup.classList.add('opacity-0', '-translate-y-4');
+      }, 4000);
+    }
+
+    // --- Quiz Challenge System ---
+    function openQuizModal(planetInfo) {
+      gameState = 'QUIZ';
+      activeQuizData = planetInfo;
+
+      const modal = document.getElementById('quiz-modal');
+      const planetTitle = document.getElementById('quiz-planet-name');
+      const questionText = document.getElementById('quiz-question-text');
+      const optionsContainer = document.getElementById('quiz-options-container');
+      const feedbackBox = document.getElementById('quiz-feedback-box');
+      const continueBtn = document.getElementById('quiz-continue-btn');
+
+      planetTitle.innerHTML = `<i class="fa-solid fa-globe mr-1"></i> คำถามดาวเคราะห์: ${planetInfo.name}`;
+      questionText.innerText = planetInfo.quiz.q;
+
+      optionsContainer.innerHTML = '';
+      feedbackBox.className = 'hidden p-3 rounded-xl text-xs sm:text-sm text-left font-medium border';
+      continueBtn.classList.add('hidden');
+
+      planetInfo.quiz.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full py-3 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-semibold text-xs sm:text-sm text-left transition border border-slate-700 active:scale-98 flex items-center justify-between';
+        btn.innerHTML = `<span>${idx + 1}. ${optText}</span> <i class="fa-regular fa-circle text-slate-400"></i>`;
+        btn.onclick = () => submitQuizAnswer(idx, planetInfo.quiz);
+        optionsContainer.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function submitQuizAnswer(chosenIdx, quizData) {
+      const optionsContainer = document.getElementById('quiz-options-container');
+      const feedbackBox = document.getElementById('quiz-feedback-box');
+      const continueBtn = document.getElementById('quiz-continue-btn');
+
+      // Disable option buttons
+      const buttons = optionsContainer.children;
+      for (let i = 0; i < buttons.length; i++) {
+        buttons[i].disabled = true;
+        buttons[i].classList.add('opacity-60', 'cursor-not-allowed');
+      }
+
+      if (chosenIdx === quizData.answer) {
+        playSound('correct');
+        addScore(300);
+
+        buttons[chosenIdx].className = 'w-full py-3 px-4 rounded-xl bg-emerald-950/90 text-emerald-200 font-semibold text-xs sm:text-sm text-left transition border border-emerald-500 flex items-center justify-between';
+        buttons[chosenIdx].querySelector('i').className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+
+        feedbackBox.className = 'p-3 rounded-xl text-xs sm:text-sm text-left font-medium border border-emerald-500/50 bg-emerald-950/60 text-emerald-200';
+        feedbackBox.innerHTML = `<div class="font-bold text-emerald-400 mb-0.5"><i class="fa-solid fa-circle-check mr-1"></i> เก่งมาก! ตอบถูกต้อง (+300 คะแนน)</div>${quizData.explain}`;
+        
+        // Grant Bonus Shield on Correct Quiz
+        hasShield = true;
+        updatePowerupHUD();
+      } else {
+        playSound('wrong');
+        buttons[chosenIdx].className = 'w-full py-3 px-4 rounded-xl bg-rose-950/90 text-rose-200 font-semibold text-xs sm:text-sm text-left transition border border-rose-500 flex items-center justify-between';
+        buttons[chosenIdx].querySelector('i').className = 'fa-solid fa-circle-xmark text-rose-400 text-base';
+
+        // Highlight correct one
+        buttons[quizData.answer].className = 'w-full py-3 px-4 rounded-xl bg-emerald-950/90 text-emerald-200 font-semibold text-xs sm:text-sm text-left transition border border-emerald-500 flex items-center justify-between opacity-100';
+
+        feedbackBox.className = 'p-3 rounded-xl text-xs sm:text-sm text-left font-medium border border-amber-500/50 bg-amber-950/60 text-amber-200';
+        feedbackBox.innerHTML = `<div class="font-bold text-amber-400 mb-0.5"><i class="fa-solid fa-lightbulb mr-1"></i> ไม่เป็นไร! เรียนรู้ข้อที่ถูกต้อง</div>${quizData.explain}`;
+      }
+
+      feedbackBox.classList.remove('hidden');
+      continueBtn.classList.remove('hidden');
+    }
+
+    document.getElementById('quiz-continue-btn')?.addEventListener('click', () => {
+      document.getElementById('quiz-modal').classList.add('hidden');
+      
+      // Check Win Condition (When all 8 planets gathered & quiz finished)
+      if (planetsCollectedCount >= TOTAL_PLANETS_WIN_COUNT) {
+        triggerVictory();
+      } else {
+        gameState = 'PLAYING';
+      }
+    });
+
+    function triggerVictory() {
+      gameState = 'WIN';
+      playSound('win');
+
+      // Completion bonus: award only once per run.
+      if (!victoryBonusAwarded) {
+        victoryBonusAwarded = true;
+        addScore(1000);
+      }
+
+      if (score > highScore) {
+        highScore = score;
+        document.getElementById('highscore-val').innerText = highScore;
+      }
+
+      document.getElementById('win-final-level').innerText = currentLevel;
+      document.getElementById('win-final-score').innerText = score;
+      const finalReward = getRewardInfo(score);
+      const winRewardEl = document.getElementById('win-final-reward');
+      if (winRewardEl) winRewardEl.innerText = `${finalReward.icon} ${finalReward.title}`;
+      document.getElementById('hud-layer').classList.add('hidden');
+      document.getElementById('win-modal').classList.remove('hidden');
+    }
+
+    function triggerDamageFlash() {
+      const overlay = document.getElementById('damage-overlay');
+      overlay.style.opacity = '0.7';
+      setTimeout(() => { overlay.style.opacity = '0'; }, 180);
+    }
+
+    function triggerShieldFlash() {
+      const overlay = document.getElementById('shield-overlay');
+      overlay.style.opacity = '0.8';
+      setTimeout(() => { overlay.style.opacity = '0'; }, 220);
+    }
+
+    function updateHeartsHUD() {
+      const container = document.getElementById('hearts-container');
+      let html = '';
+      for (let i = 1; i <= 3; i++) {
+        if (i <= lives) {
+          html += `<i class="fa-solid fa-heart text-rose-500"></i>`;
+        } else {
+          html += `<i class="fa-regular fa-heart text-slate-600"></i>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function updatePowerupHUD() {
+      const shieldB = document.getElementById('shield-badge');
+      const magnetB = document.getElementById('magnet-badge');
+      const speedB = document.getElementById('speed-badge');
+
+      if (hasShield) {
+        shieldB.classList.remove('hidden');
+        shieldMesh.material.opacity = 0.5;
+      } else {
+        shieldB.classList.add('hidden');
+        shieldMesh.material.opacity = 0.0;
+      }
+
+      if (isMagnetActive) {
+        magnetB.classList.remove('hidden');
+        document.getElementById('magnet-timer').innerText = Math.ceil(magnetTimer / 60);
+      } else {
+        magnetB.classList.add('hidden');
+      }
+
+      if (isSpeedActive) {
+        speedB.classList.remove('hidden');
+        document.getElementById('speed-timer').innerText = Math.ceil(speedTimer / 60);
+      } else {
+        speedB.classList.add('hidden');
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (gameState === 'PLAYING') {
+        if (laserCooldown > 0) laserCooldown--;
+
+        if (isMagnetActive) {
+          magnetTimer--;
+          if (magnetTimer <= 0) isMagnetActive = false;
+        }
+        if (isSpeedActive) {
+          speedTimer--;
+          if (speedTimer <= 0) isSpeedActive = false;
+        }
+        updatePowerupHUD();
+
+        const moveSmooth = isSpeedActive ? 0.32 : 0.16;
+        playerCurrentX += (playerTargetX - playerCurrentX) * moveSmooth;
+        playerShip.position.x = playerCurrentX;
+
+        playerShip.rotation.z = (playerCurrentX - playerTargetX) * 0.28;
+        playerShip.rotation.y = (playerTargetX - playerCurrentX) * 0.18;
+
+        if (Math.random() < 0.8) {
+          [-0.45, 0.45].forEach(xOffset => {
+            const pGeo = new THREE.SphereGeometry(0.09, 4, 4);
+            const pMat = new THREE.MeshBasicMaterial({ color: Math.random() < 0.5 ? 0x38bdf8 : 0x06b6d4 });
+            const p = new THREE.Mesh(pGeo, pMat);
+            p.position.set(playerShip.position.x + xOffset + (Math.random() - 0.5) * 0.1, playerShip.position.y, playerShip.position.z + 1.35);
+            p.userData = { vz: 0.18 + Math.random() * 0.08, life: 14 };
+            scene.add(p);
+            engineParticles.push(p);
+          });
+        }
+
+        for (let i = engineParticles.length - 1; i >= 0; i--) {
+          const ep = engineParticles[i];
+          ep.position.z += ep.userData.vz;
+          ep.userData.life--;
+          if (ep.userData.life <= 0) {
+            scene.remove(ep);
+            engineParticles.splice(i, 1);
+          }
+        }
+
+        for (let i = explosionParticles.length - 1; i >= 0; i--) {
+          const xp = explosionParticles[i];
+          xp.position.x += xp.userData.vx;
+          xp.position.y += xp.userData.vy;
+          xp.position.z += xp.userData.vz;
+          xp.userData.life--;
+          if (xp.userData.life <= 0) {
+            scene.remove(xp);
+            explosionParticles.splice(i, 1);
+          }
+        }
+
+        if (starField) {
+          const positions = starField.geometry.attributes.position.array;
+          const starSpeed = 0.85 + (currentLevel - 1) * 0.15;
+          for (let i = 2; i < positions.length; i += 3) {
+            positions[i] += starSpeed;
+            if (positions[i] > 10) positions[i] = -220;
+          }
+          starField.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Lasers Movement & Collision check
+        for (let i = lasers.length - 1; i >= 0; i--) {
+          const l = lasers[i];
+          l.position.z -= 1.2;
+
+          let hit = false;
+          for (let j = obstacles.length - 1; j >= 0; j--) {
+            const obs = obstacles[j];
+            if (l.position.distanceTo(obs.position) < obs.userData.radius + 0.5) {
+              createExplosion(obs.position, 0xf43f5e);
+              addScore(50);
+
+              scene.remove(obs);
+              obstacles.splice(j, 1);
+              hit = true;
+              break;
+            }
+          }
+
+          if (hit || l.position.z < -110) {
+            scene.remove(l);
+            lasers.splice(i, 1);
+          }
+        }
+
+        // Spawn Timers (Speed up with higher Level)
+        spawnTimer++;
+        const meteorSpawnInterval = Math.max(20, 38 - (currentLevel - 1) * 3);
+        if (spawnTimer > meteorSpawnInterval) {
+          spawnMeteor();
+          spawnTimer = 0;
+        }
+
+        // Only spawn planet if under total target
+        if (planetsCollectedCount < TOTAL_PLANETS_WIN_COUNT) {
+          planetSpawnTimer++;
+          if (planetSpawnTimer > 180) {
+            spawnNextPlanet();
+            planetSpawnTimer = 0;
+          }
+        }
+
+        powerupSpawnTimer++;
+        // ไอเทมจำนวนมาก: เกิดเป็นชุดทุกประมาณ 7 วินาที ครั้งละ 4-6 ชิ้น
+        if (powerupSpawnTimer > 420) {
+          const amount = 4 + Math.floor(Math.random() * 3);
+          for (let n = 0; n < amount; n++) spawnPowerup();
+          powerupSpawnTimer = 0;
+        }
+
+        // Power-ups update
+        for (let i = powerups.length - 1; i >= 0; i--) {
+          const pw = powerups[i];
+          pw.position.z += pw.userData.speed;
+          pw.rotation.y += 0.04;
+
+          if (isMagnetActive && pw.position.z > -50) {
+            pw.position.x += (playerShip.position.x - pw.position.x) * 0.06;
+            pw.position.y += (playerShip.position.y - pw.position.y) * 0.06;
+          }
+
+          if (playerShip.position.distanceTo(pw.position) < pw.userData.radius + 0.9) {
+            playSound('powerup');
+            const type = pw.userData.type;
+            
+            if (type === 'SHIELD') {
+              hasShield = true;
+            } else if (type === 'MAGNET') {
+              isMagnetActive = true;
+              magnetTimer = 8 * 60;
+            } else if (type === 'REPAIR') {
+              lives = Math.min(3, lives + 1);
+              updateHeartsHUD();
+            } else if (type === 'SPEED') {
+              isSpeedActive = true;
+              speedTimer = 10 * 60;
+            } else if (type === 'SCORE' || type === 'COIN' || type === 'CRYSTAL' || type === 'ENERGY' || type === 'STAR_GOLD' || type === 'BOOST' || type === 'BIG_CRYSTAL') {
+              addScore(pw.userData.score);
+            } else if (type === 'AMMO') {
+              laserAmmo = Math.min(MAX_LASER_AMMO, laserAmmo + 5);
+              updateLaserAmmoHUD();
+            }
+
+            totalItemsCollected++;
+            const itemCounter = document.getElementById('items-count');
+            if (itemCounter) itemCounter.innerText = totalItemsCollected;
+
+            scene.remove(pw);
+            powerups.splice(i, 1);
+            continue;
+          }
+
+          if (pw.position.z > 10) {
+            scene.remove(pw);
+            powerups.splice(i, 1);
+          }
+        }
+
+        // Obstacles (Meteors) update
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const obs = obstacles[i];
+          obs.position.z += obs.userData.speed;
+          obs.rotation.x += obs.userData.rotSpeedX;
+          obs.rotation.y += obs.userData.rotSpeedY;
+
+          const dist = playerShip.position.distanceTo(obs.position);
+          if (dist < obs.userData.radius + 0.8) {
+            if (hasShield) {
+              hasShield = false;
+              playSound('hit');
+              triggerShieldFlash();
+              createExplosion(obs.position, 0x22d3ee);
+            } else {
+              playSound('hit');
+              triggerDamageFlash();
+              createExplosion(obs.position, 0xe11d48);
+              
+              comboCount = 0;
+              document.getElementById('combo-badge').innerText = `x1`;
+
+              lives--;
+              updateHeartsHUD();
+
+              if (lives <= 0) {
+                endGame();
+              }
+            }
+
+            scene.remove(obs);
+            obstacles.splice(i, 1);
+            continue;
+          }
+
+          if (obs.position.z > 10) {
+            scene.remove(obs);
+            obstacles.splice(i, 1);
+          }
+        }
+
+        // Collectibles (Planets) update
+        for (let i = collectibles.length - 1; i >= 0; i--) {
+          const planet = collectibles[i];
+          planet.position.z += planet.userData.speed;
+          planet.rotation.y += 0.012;
+
+          if (isMagnetActive && planet.position.z > -40) {
+            planet.position.x += (playerShip.position.x - planet.position.x) * 0.08;
+            planet.position.y += (playerShip.position.y - planet.position.y) * 0.08;
+          }
+
+          const dist = playerShip.position.distanceTo(planet.position);
+          if (dist < planet.userData.radius + 1.0) {
+            playSound('collect');
+            
+            comboCount++;
+            const multiplier = Math.min(4, Math.floor(comboCount / 2) + 1);
+            addScore(150 * multiplier);
+            planetsCollectedCount++;
+            document.getElementById('planets-count').innerText = planetsCollectedCount;
+            document.getElementById('combo-badge').innerText = `x${multiplier}`;
+
+            const pInfo = planet.userData.planetInfo;
+            showFactPopup(`สะสมสำเร็จ: ${pInfo.name}`, pInfo.fact);
+
+            checkLevelUp();
+
+            scene.remove(planet);
+            collectibles.splice(i, 1);
+
+            // Open Astronomy Quiz Challenge!
+            openQuizModal(pInfo);
+            continue;
+          }
+
+          if (planet.position.z > 10) {
+            scene.remove(planet);
+            collectibles.splice(i, 1);
+          }
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function initGallery3D() {
+      const container = document.getElementById('gallery-3d-container');
+      if (!container) return;
+
+      galleryScene = new THREE.Scene();
+      galleryCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+      galleryCamera.position.set(0, 0, 4.5);
+
+      galleryRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      galleryRenderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(galleryRenderer.domElement);
+
+      const light1 = new THREE.DirectionalLight(0xffffff, 1.2);
+      light1.position.set(5, 5, 5);
+      galleryScene.add(light1);
+
+      const light2 = new THREE.AmbientLight(0xffffff, 0.6);
+      galleryScene.add(light2);
+
+      const tabsContainer = document.getElementById('planet-tabs');
+      tabsContainer.innerHTML = '';
+
+      PLANETS_DATA.forEach((pData, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${idx === 0 ? 'bg-cyan-500 text-slate-950 border-cyan-400' : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'}`;
+        btn.innerText = pData.name.split(' ')[0];
+        btn.onclick = () => selectGalleryPlanet(idx);
+        tabsContainer.appendChild(btn);
+      });
+
+      selectGalleryPlanet(0);
+      animateGallery3D();
+    }
+
+    function selectGalleryPlanet(index) {
+      if (!galleryScene) return;
+
+      const tabs = document.getElementById('planet-tabs').children;
+      for (let i = 0; i < tabs.length; i++) {
+        if (i === index) {
+          tabs[i].className = 'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border bg-cyan-500 text-slate-950 border-cyan-400';
+        } else {
+          tabs[i].className = 'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700';
+        }
+      }
+
+      const pData = PLANETS_DATA[index];
+      document.getElementById('p-gallery-title').innerText = pData.name;
+      document.getElementById('p-gallery-desc').innerText = pData.fact;
+
+      if (galleryPlanetMesh) galleryScene.remove(galleryPlanetMesh);
+
+      const group = new THREE.Group();
+      const sphereGeo = new THREE.SphereGeometry(1.2, 32, 32);
+      const sphereMat = new THREE.MeshStandardMaterial({ color: pData.color, roughness: 0.5 });
+      group.add(new THREE.Mesh(sphereGeo, sphereMat));
+
+      if (pData.hasRing) {
+        const ringGeo = new THREE.RingGeometry(1.6, 2.4, 32);
+        const ringMat = new THREE.MeshBasicMaterial({ color: pData.ringColor, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.3;
+        group.add(ring);
+      }
+
+      galleryPlanetMesh = group;
+      galleryScene.add(galleryPlanetMesh);
+    }
+
+    function animateGallery3D() {
+      requestAnimationFrame(animateGallery3D);
+      if (galleryPlanetMesh) {
+        galleryPlanetMesh.rotation.y += 0.015;
+      }
+      if (galleryRenderer && galleryScene && galleryCamera) {
+        galleryRenderer.render(galleryScene, galleryCamera);
+      }
+    }
+
+    function startGame() {
+      initAudio();
+      playSound('start');
+
+      score = 0;
+      laserAmmo = MAX_LASER_AMMO;
+      victoryBonusAwarded = false;
+      lives = 3;
+      comboCount = 0;
+      planetsCollectedCount = 0;
+      nextPlanetIndex = 0;
+      currentLevel = 1;
+      playerTargetX = 0;
+      playerCurrentX = 0;
+      hasShield = false;
+      isMagnetActive = false;
+      isSpeedActive = false;
+      speedTimer = 0;
+
+      obstacles.forEach(obs => scene.remove(obs));
+      collectibles.forEach(col => scene.remove(col));
+      powerups.forEach(pw => scene.remove(pw));
+      lasers.forEach(l => scene.remove(l));
+      obstacles = [];
+      collectibles = [];
+      powerups = [];
+      lasers = [];
+
+      document.getElementById('score-val').innerText = '0';
+      document.getElementById('level-val').innerText = '1';
+      document.getElementById('planets-count').innerText = '0';
+      document.getElementById('combo-badge').innerText = 'x1';
+      updateRewardHUD();
+      updateLaserAmmoHUD();
+      updateHeartsHUD();
+      updatePowerupHUD();
+
+      document.getElementById('start-modal').classList.add('hidden');
+      document.getElementById('over-modal').classList.add('hidden');
+      document.getElementById('win-modal').classList.add('hidden');
+      document.getElementById('pause-modal').classList.add('hidden');
+      document.getElementById('quiz-modal').classList.add('hidden');
+      document.getElementById('hud-layer').classList.remove('hidden');
+
+      gameState = 'PLAYING';
+    }
+
+    function pauseGame() {
+      if (gameState !== 'PLAYING') return;
+      gameState = 'PAUSED';
+      document.getElementById('pause-modal').classList.remove('hidden');
+    }
+
+    function resumeGame() {
+      if (gameState !== 'PAUSED') return;
+      document.getElementById('pause-modal').classList.add('hidden');
+      gameState = 'PLAYING';
+    }
+
+    function endGame() {
+      gameState = 'GAMEOVER';
+      playSound('gameover');
+
+      if (score > highScore) {
+        highScore = score;
+        document.getElementById('highscore-val').innerText = highScore;
+      }
+
+      document.getElementById('final-level').innerText = currentLevel;
+      document.getElementById('final-score').innerText = score;
+      document.getElementById('final-planets').innerText = planetsCollectedCount;
+      const finalReward = getRewardInfo(score);
+      const gameOverRewardEl = document.getElementById('final-reward');
+      if (gameOverRewardEl) gameOverRewardEl.innerText = `${finalReward.icon} ${finalReward.title}`;
+      document.getElementById('hud-layer').classList.add('hidden');
+      document.getElementById('over-modal').classList.remove('hidden');
+    }
+
+    // Action Listeners
+    document.getElementById('btn-left')?.addEventListener('click', () => {
+      if (gameState === 'PLAYING') playerTargetX = Math.max(-4.2, playerTargetX - 1.3);
+    });
+    document.getElementById('btn-right')?.addEventListener('click', () => {
+      if (gameState === 'PLAYING') playerTargetX = Math.min(4.2, playerTargetX + 1.3);
+    });
+    document.getElementById('btn-laser')?.addEventListener('click', fireLaser);
+
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('retry-btn').addEventListener('click', startGame);
+    document.getElementById('win-replay-btn')?.addEventListener('click', startGame);
+    document.getElementById('pause-btn').addEventListener('click', pauseGame);
+    document.getElementById('resume-btn').addEventListener('click', resumeGame);
+    document.getElementById('restart-from-pause-btn').addEventListener('click', startGame);
+    document.getElementById('toggle-sound-btn').addEventListener('click', toggleSound);
+
+    // Gallery Modal Handlers
+    document.getElementById('open-gallery-btn').addEventListener('click', () => {
+      document.getElementById('gallery-modal').classList.remove('hidden');
+    });
+    document.getElementById('close-gallery-btn').addEventListener('click', () => {
+      document.getElementById('gallery-modal').classList.add('hidden');
+    });
+
+    let handsTracking, cameraUtil;
+    let isCameraActive = false;
+
+    function initHandTracking() {
+      const videoElement = document.getElementById('webcam-video');
+      const canvasElement = document.getElementById('webcam-canvas');
+      if (!canvasElement || !videoElement) return;
+
+      const canvasCtx = canvasElement.getContext('2d');
+      const statusBadge = document.getElementById('hand-status-badge');
+
+      canvasElement.width = 160;
+      canvasElement.height = 120;
+
+      if (typeof Hands === 'undefined') {
+        if (statusBadge) {
+          statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-amber-950/90 text-[10px] text-amber-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-amber-500/40';
+          statusBadge.innerHTML = '<i class="fa-solid fa-gamepad text-amber-400"></i> โหมดปุ่มกด (ไม่ต้องใช้กล้อง)';
+        }
+        return;
+      }
+
+      handsTracking = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      handsTracking.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.65,
+        minTrackingConfidence: 0.65
+      });
+
+      handsTracking.onResults((results) => {
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        if (results.image) {
+          canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        }
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          const landmarks = results.multiHandLandmarks[0];
+
+          const wrist = landmarks[0];
+          const middleMCP = landmarks[9];
+          const handCenterX = (wrist.x * 0.4) + (middleMCP.x * 0.6);
+          const mirroredX = 1 - handCenterX;
+
+          const handScale = Math.hypot(wrist.x - middleMCP.x, wrist.y - middleMCP.y) || 0.25;
+
+          const clampedX = Math.max(0.15, Math.min(0.85, mirroredX));
+          const targetX = ((clampedX - 0.15) / 0.70) * 8.4 - 4.2;
+
+          handSmoothedX += (targetX - handSmoothedX) * 0.32;
+
+          if (gameState === 'PLAYING') {
+            playerTargetX = handSmoothedX;
+          }
+
+          const thumbTip = landmarks[4];
+          const indexTip = landmarks[8];
+          const rawPinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
+          const normalizedPinch = rawPinchDist / handScale;
+
+          const pinchTriggered = normalizedPinch < 0.38;
+          if (pinchTriggered && !isPinching) {
+            isPinching = true;
+            fireLaser();
+          } else if (!pinchTriggered) {
+            isPinching = false;
+          }
+
+          drawHandSkeleton(canvasCtx, landmarks, canvasElement.width, canvasElement.height, pinchTriggered, normalizedPinch);
+
+          if (statusBadge) {
+            if (pinchTriggered) {
+              statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-rose-950/90 text-[10px] text-rose-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-rose-500/50 font-bold animate-pulse';
+              statusBadge.innerHTML = '<i class="fa-solid fa-bolt text-rose-400 mr-1"></i> จีบนิ้ว: ยิงเลเซอร์!';
+            } else {
+              statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-emerald-950/90 text-[10px] text-emerald-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-emerald-500/40 font-medium';
+              statusBadge.innerHTML = '<i class="fa-solid fa-hand text-emerald-400 mr-1"></i> จับตำแหน่งมือแม่นยำ';
+            }
+          }
+        } else {
+          if (statusBadge && isCameraActive) {
+            statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-amber-950/90 text-[10px] text-amber-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-amber-500/40';
+            statusBadge.innerHTML = '<i class="fa-solid fa-hand-pointer animate-pulse mr-1"></i> ยื่นมือเข้ากล้อง...';
+          }
+        }
+        canvasCtx.restore();
+      });
+
+      if (typeof Camera !== 'undefined') {
+        cameraUtil = new Camera(videoElement, {
+          onFrame: async () => {
+            if (isCameraActive && handsTracking) {
+              await handsTracking.send({ image: videoElement });
+            }
+          },
+          width: 320,
+          height: 240
+        });
+
+        cameraUtil.start().then(() => {
+          isCameraActive = true;
+        }).catch((err) => {
+          console.warn("ไม่สามารถเปิดกล้องได้:", err);
+          if (statusBadge) {
+            statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-rose-950/90 text-[10px] text-rose-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-rose-500/40';
+            statusBadge.innerHTML = '<i class="fa-solid fa-keyboard text-cyan-400"></i> ใช้ปุ่มกด/คีย์บอร์ดแทน';
+          }
+        });
+      }
+    }
+
+    function drawHandSkeleton(ctx, landmarks, w, h, isPinching, pinchVal) {
+      const connections = [
+        [0,1],[1,2],[2,3],[3,4],
+        [0,5],[5,6],[6,7],[7,8],
+        [5,9],[9,10],[10,11],[11,12],
+        [9,13],[13,14],[14,15],[15,16],
+        [13,17],[17,18],[18,19],[19,20],[0,17]
+      ];
+
+      ctx.strokeStyle = isPinching ? 'rgba(244, 63, 94, 0.85)' : 'rgba(56, 189, 248, 0.75)';
+      ctx.lineWidth = 2;
+
+      connections.forEach(([i, j]) => {
+        ctx.beginPath();
+        ctx.moveTo(landmarks[i].x * w, landmarks[i].y * h);
+        ctx.lineTo(landmarks[j].x * w, landmarks[j].y * h);
+        ctx.stroke();
+      });
+
+      landmarks.forEach((pt, idx) => {
+        const isTargetTip = (idx === 8 || idx === 4);
+        ctx.beginPath();
+        ctx.arc(pt.x * w, pt.y * h, isTargetTip ? 5 : 2.5, 0, 2 * Math.PI);
+        ctx.fillStyle = isTargetTip ? (isPinching ? '#f43f5e' : '#38bdf8') : '#e0f2fe';
+        ctx.fill();
+      });
+
+      const thumb = landmarks[4];
+      const index = landmarks[8];
+      ctx.beginPath();
+      ctx.moveTo(thumb.x * w, thumb.y * h);
+      ctx.lineTo(index.x * w, index.y * h);
+      ctx.strokeStyle = isPinching ? '#f43f5e' : '#e0e7ff';
+      ctx.lineWidth = isPinching ? 3 : 1;
+      ctx.stroke();
+    }
+
+    document.getElementById('toggle-cam-btn')?.addEventListener('click', () => {
+      isCameraActive = !isCameraActive;
+      const statusBadge = document.getElementById('hand-status-badge');
+      if (isCameraActive) {
+        if (cameraUtil) cameraUtil.start();
+        if (statusBadge) statusBadge.innerText = 'กำลังเปิดกล้อง...';
+      } else {
+        if (statusBadge) {
+          statusBadge.className = 'absolute bottom-1 left-1 right-1 bg-slate-950/90 text-[10px] text-slate-300 py-1 px-2 rounded-lg text-center backdrop-blur-md truncate border border-slate-700';
+          statusBadge.innerText = 'ปิดกล้องแล้ว (ใช้ปุ่มกด)';
+        }
+      }
+    });
+
+    window.onload = function() {
+      initThreeJS();
+      updateLaserAmmoHUD();
+      initHandTracking();
+    };
+  </script>
 </body>
 </html>
